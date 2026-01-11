@@ -50,3 +50,13 @@ def test_get_out_of_bounds_raises() -> None:
         board.get(2, 0)
     with pytest.raises(IndexError):
         board.get(0, 1)
+
+
+def test_board_rejects_invalid_cells() -> None:
+    """BoardState should reject rows with non-GemType cells."""
+
+    rows = [
+        [GemType.RED, None],
+    ]
+    with pytest.raises(ValueError, match="Invalid cells"):
+        BoardState.from_rows(rows)

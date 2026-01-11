@@ -58,7 +58,7 @@ class BoardState:
             rows: A rectangular 2D sequence of GemType values.
 
         Raises:
-            ValueError: If rows are empty or not rectangular.
+            ValueError: If rows are empty, not rectangular, or contain non-GemType cells.
         """
 
         if not rows:
@@ -68,5 +68,19 @@ class BoardState:
             raise ValueError("Board rows must contain at least one gem.")
         if len(row_lengths) != 1:
             raise ValueError("Board rows must be rectangular.")
+        invalid_cells: list[tuple[int, int, object]] = []
+        for row_index, row in enumerate(rows):
+            for column_index, cell in enumerate(row):
+                if not isinstance(cell, GemType):
+                    invalid_cells.append((column_index, row_index, cell))
+        if invalid_cells:
+            details = ", ".join(
+                f"({column_index}, {row_index})={cell!r}"
+                for column_index, row_index, cell in invalid_cells
+            )
+            raise ValueError(
+                "Board rows must contain only GemType values. "
+                f"Invalid cells: {details}"
+            )
         frozen_rows = tuple(tuple(row) for row in rows)
         return cls(rows=frozen_rows)
