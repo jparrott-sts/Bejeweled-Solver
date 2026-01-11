@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import TypeAlias
 
 from game.board import BoardState
+from game.gem import GemType
 
 Coordinate: TypeAlias = tuple[int, int]
 
@@ -30,6 +31,18 @@ def find_matches(board: BoardState) -> set[Coordinate]:
     _add_horizontal_matches(board, matches)
     _add_vertical_matches(board, matches)
     return matches
+
+
+def remove_matches(board: BoardState, matches: set[Coordinate]) -> BoardState:
+    """Return a new board with matched gems replaced by empty cells."""
+
+    if not matches:
+        return board
+    rows = tuple(
+        tuple(GemType.EMPTY if (x, y) in matches else board.get(x, y) for x in range(board.width))
+        for y in range(board.height)
+    )
+    return BoardState(rows=rows)
 
 
 def _add_horizontal_matches(board: BoardState, matches: set[Coordinate]) -> None:
