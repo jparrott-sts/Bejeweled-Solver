@@ -18,6 +18,7 @@ from typing import Iterable
 
 from game.board import BoardState
 from game.gem import GemType
+from game.rules import find_matches
 
 Coordinate = tuple[int, int]
 Swap = tuple[Coordinate, Coordinate]
@@ -41,6 +42,47 @@ def enumerate_swaps(board: BoardState) -> list[Swap]:
                 continue
             swaps.extend(_enumerate_adjacent_swaps(board, x, y))
     return swaps
+
+
+def is_productive_swap(board: BoardState, swap: Swap) -> bool:
+    """Return True if the swap creates at least one match.
+
+    Productive swaps are evaluated only on the immediate post-swap board.
+    """
+
+    (first_x, first_y), (second_x, second_y) = swap
+    if board.get(first_x, first_y) is GemType.EMPTY:
+        return False
+    if board.get(second_x, second_y) is GemType.EMPTY:
+        return False
+    swapped_board = _apply_swap(board, swap)
+    return bool(find_matches(swapped_board))
+
+
+def filter_productive_swaps(board: BoardState, swaps: list[Swap]) -> list[Swap]:
+    """Return only the swaps that create at least one match."""
+
+    return [swap for swap in swaps if is_productive_swap(board, swap)]
+
+
+def _apply_swap(board: BoardState, swap: Swap) -> BoardState:
+    """Return a new board with the swap applied."""
+
+    (first_x, first_y), (second_x, second_y) = swap
+    first_gem = board.get(first_x, first_y)
+    second_gem = board.get(second_x, second_y)
+    rows = tuple(
+        tuple(
+            second_gem
+            if (x, y) == (first_x, first_y)
+            else first_gem
+            if (x, y) == (second_x, second_y)
+            else board.get(x, y)
+            for x in range(board.width)
+        )
+        for y in range(board.height)
+    )
+    return BoardState(rows=rows)
 
 
 def _enumerate_adjacent_swaps(board: BoardState, x: int, y: int) -> Iterable[Swap]:
