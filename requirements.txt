@@ -1,0 +1,10 @@
+mss
+numpy
+opencv-python
+scikit-image
+pillow
+pytesseract
+pyautogui
+torch        # or tensorflow
+matplotlib
+scipy
