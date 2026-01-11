@@ -58,3 +58,18 @@ def test_overlapping_t_shape_match_detection() -> None:
     matches = find_matches(board)
 
     assert matches == {(1, 0), (0, 1), (1, 1), (2, 1), (1, 2)}
+
+
+def test_empty_cells_do_not_match() -> None:
+    """Ensure empty cells are not considered matchable gems."""
+
+    rows = [
+        [GemType.EMPTY, GemType.EMPTY, GemType.EMPTY],
+        [GemType.RED, GemType.GREEN, GemType.BLUE],
+        [GemType.YELLOW, GemType.PURPLE, GemType.ORANGE],
+    ]
+    board = BoardState.from_rows(rows)
+
+    matches = find_matches(board)
+
+    assert matches == set()
