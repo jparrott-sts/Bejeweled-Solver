@@ -35,7 +35,16 @@ def resolve_cascades(board: BoardState, gem_supplier: Callable[[], GemType]) -> 
     while True:
         matches = find_matches(current)
         if not matches:
-            return current
+            has_empty = any(
+                gem is GemType.EMPTY
+                for row in current.rows
+                for gem in row
+            )
+            if not has_empty:
+                return current
+            settled = apply_gravity(current)
+            current = refill_board(settled, gem_supplier)
+            continue
         cleared = remove_matches(current, matches)
         settled = apply_gravity(cleared)
         current = refill_board(settled, gem_supplier)

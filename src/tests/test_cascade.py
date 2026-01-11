@@ -68,6 +68,30 @@ def test_no_initial_matches_returns_identical_board() -> None:
     assert board.rows == original_rows
 
 
+def test_empty_cells_without_matches_refill_once() -> None:
+    """Empty cells are refilled even when no matches exist."""
+
+    rows = [
+        [GemType.RED, GemType.EMPTY, GemType.BLUE],
+        [GemType.GREEN, GemType.YELLOW, GemType.PURPLE],
+        [GemType.ORANGE, GemType.BLUE, GemType.GREEN],
+    ]
+    board = BoardState.from_rows(rows)
+    supplier, call_count = make_supplier([GemType.RED])
+
+    resolved = resolve_cascades(board, supplier)
+
+    expected = (
+        (GemType.RED, GemType.YELLOW, GemType.BLUE),
+        (GemType.GREEN, GemType.BLUE, GemType.PURPLE),
+        (GemType.ORANGE, GemType.RED, GemType.GREEN),
+    )
+    assert resolved.rows == expected
+    assert call_count["count"] == 1
+    assert_no_empty_cells(resolved)
+    assert_no_matches(resolved)
+
+
 def test_single_cascade_resolves_correctly() -> None:
     """Single cascade resolves matches and refills once."""
 
@@ -231,8 +255,8 @@ def test_deterministic_supplier_produces_same_output() -> None:
     assert_no_matches(first)
 
 
-def test_empty_cells_without_matches_do_not_trigger_refill() -> None:
-    """Empty cells are left untouched when there are no matches."""
+def test_empty_cells_without_matches_trigger_refill() -> None:
+    """Empty cells are refilled even when there are no matches."""
 
     rows = [
         [GemType.EMPTY, GemType.RED],
@@ -245,7 +269,13 @@ def test_empty_cells_without_matches_do_not_trigger_refill() -> None:
 
     resolved = resolve_cascades(board, supplier)
 
-    assert resolved.rows == board.rows
-    assert call_count["count"] == 0
+    expected = (
+        (GemType.BLUE, GemType.RED),
+        (GemType.YELLOW, GemType.GREEN),
+        (GemType.ORANGE, GemType.PURPLE),
+    )
+    assert resolved.rows == expected
+    assert call_count["count"] == 1
     assert board.rows == original_rows
+    assert_no_empty_cells(resolved)
     assert_no_matches(resolved)
