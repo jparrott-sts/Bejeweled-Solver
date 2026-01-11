@@ -14,6 +14,7 @@ sys.path.append(str(PROJECT_ROOT))
 from game.board import BoardState
 from game.gem import GemType
 from game.refill import refill_board
+import pytest
 
 
 def make_supplier(
@@ -160,3 +161,18 @@ def test_deterministic_supplier_order_is_respected() -> None:
     assert updated.rows == expected
     assert call_count["count"] == 4
     assert board.rows == original_rows
+
+
+def test_supplier_returning_empty_raises_error() -> None:
+    """Refill should reject suppliers that return empty gems."""
+
+    rows = [
+        [GemType.EMPTY],
+    ]
+    board = BoardState.from_rows(rows)
+
+    def supplier() -> GemType:
+        return GemType.EMPTY
+
+    with pytest.raises(ValueError, match="gem_supplier\\(\\) returned GemType\\.EMPTY"):
+        refill_board(board, supplier)
