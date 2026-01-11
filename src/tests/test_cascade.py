@@ -169,6 +169,38 @@ def test_overlapping_matches_resolve_across_cascade() -> None:
     assert_no_matches(resolved)
 
 
+def test_detects_matches_before_gravity_and_refill() -> None:
+    """Initial matches are removed before gravity and refills."""
+
+    rows = [
+        [GemType.EMPTY, GemType.BLUE, GemType.EMPTY],
+        [GemType.RED, GemType.RED, GemType.RED],
+        [GemType.GREEN, GemType.PURPLE, GemType.ORANGE],
+    ]
+    board = BoardState.from_rows(rows)
+    original_rows = board.rows
+    supplier, call_count = make_supplier([
+        GemType.RED,
+        GemType.YELLOW,
+        GemType.GREEN,
+        GemType.BLUE,
+        GemType.PURPLE,
+    ])
+
+    resolved = resolve_cascades(board, supplier)
+
+    expected = (
+        (GemType.GREEN, GemType.BLUE, GemType.ORANGE),
+        (GemType.YELLOW, GemType.PURPLE, GemType.PURPLE),
+        (GemType.RED, GemType.GREEN, GemType.BLUE),
+    )
+    assert resolved.rows == expected
+    assert call_count["count"] == 5
+    assert board.rows == original_rows
+    assert_no_empty_cells(resolved)
+    assert_no_matches(resolved)
+
+
 def test_deterministic_supplier_produces_same_output() -> None:
     """Same input and supplier sequence yield identical output."""
 
@@ -199,8 +231,8 @@ def test_deterministic_supplier_produces_same_output() -> None:
     assert_no_matches(first)
 
 
-def test_empty_cells_without_matches_are_normalized() -> None:
-    """Empty cells trigger gravity and refill even without matches."""
+def test_empty_cells_without_matches_do_not_trigger_refill() -> None:
+    """Empty cells are left untouched when there are no matches."""
 
     rows = [
         [GemType.EMPTY, GemType.RED],
@@ -213,13 +245,7 @@ def test_empty_cells_without_matches_are_normalized() -> None:
 
     resolved = resolve_cascades(board, supplier)
 
-    expected = (
-        (GemType.BLUE, GemType.RED),
-        (GemType.YELLOW, GemType.GREEN),
-        (GemType.ORANGE, GemType.PURPLE),
-    )
-    assert resolved.rows == expected
-    assert call_count["count"] == 1
+    assert resolved.rows == board.rows
+    assert call_count["count"] == 0
     assert board.rows == original_rows
-    assert_no_empty_cells(resolved)
     assert_no_matches(resolved)
