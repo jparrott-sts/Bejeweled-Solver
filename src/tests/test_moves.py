@@ -4,15 +4,49 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import sys
+from collections.abc import Callable
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
 from game.board import BoardState
 from game.gem import GemType
-from game.moves import enumerate_swaps, filter_productive_swaps, is_productive_swap
+from game.moves import (
+    enumerate_swaps,
+    filter_productive_swaps,
+    is_productive_swap,
+    simulate_move,
+)
+from game.rules import find_matches
+
+
+def make_supplier(sequence: list[GemType]) -> Callable[[], GemType]:
+    """Return a deterministic gem supplier from a sequence."""
+
+    iterator = iter(sequence)
+
+    def supplier() -> GemType:
+        return next(iterator)
+
+    return supplier
+
+
+def assert_no_empty_cells(board: BoardState) -> None:
+    """Assert that the board contains no empty gems."""
+
+    assert all(
+        gem is not GemType.EMPTY
+        for row in board.rows
+        for gem in row
+    )
+
+
+def assert_no_matches(board: BoardState) -> None:
+    """Assert that the board contains no matches."""
+
+    assert not find_matches(board)
 
 
 def test_enumerate_swaps_ordering_and_immutability() -> None:
@@ -163,3 +197,171 @@ def test_filter_productive_swaps_preserves_board() -> None:
     filter_productive_swaps(board, swaps)
 
     assert board.rows is original_rows
+
+
+def test_simulate_move_single_swap_resolves_to_expected_board() -> None:
+    """Simulate a productive swap and resolve to a stable board."""
+
+    rows = [
+        [GemType.RED, GemType.BLUE, GemType.GREEN],
+        [GemType.BLUE, GemType.RED, GemType.BLUE],
+        [GemType.YELLOW, GemType.GREEN, GemType.PURPLE],
+    ]
+    board = BoardState.from_rows(rows)
+    swap = ((1, 0), (1, 1))
+    supplier = make_supplier([GemType.BLUE, GemType.YELLOW, GemType.PURPLE])
+
+    result = simulate_move(board, swap, supplier)
+
+    expected = (
+        (GemType.RED, GemType.RED, GemType.GREEN),
+        (GemType.YELLOW, GemType.GREEN, GemType.PURPLE),
+        (GemType.BLUE, GemType.YELLOW, GemType.PURPLE),
+    )
+    assert result.rows == expected
+    assert_no_empty_cells(result)
+    assert_no_matches(result)
+
+
+def test_simulate_move_multi_cascade_resolves_fully() -> None:
+    """Resolve a swap that triggers multiple cascades."""
+
+    rows = [
+        [GemType.RED, GemType.RED, GemType.BLUE],
+        [GemType.BLUE, GemType.GREEN, GemType.RED],
+        [GemType.BLUE, GemType.GREEN, GemType.BLUE],
+    ]
+    board = BoardState.from_rows(rows)
+    swap = ((2, 0), (2, 1))
+    supplier = make_supplier([
+        GemType.BLUE,
+        GemType.GREEN,
+        GemType.BLUE,
+        GemType.RED,
+        GemType.GREEN,
+        GemType.BLUE,
+        GemType.YELLOW,
+        GemType.PURPLE,
+        GemType.YELLOW,
+        GemType.RED,
+        GemType.BLUE,
+        GemType.GREEN,
+    ])
+
+    result = simulate_move(board, swap, supplier)
+
+    expected = (
+        (GemType.BLUE, GemType.YELLOW, GemType.GREEN),
+        (GemType.GREEN, GemType.PURPLE, GemType.BLUE),
+        (GemType.RED, GemType.YELLOW, GemType.RED),
+    )
+    assert result.rows == expected
+    assert_no_empty_cells(result)
+    assert_no_matches(result)
+
+
+def test_simulate_move_preserves_input_board() -> None:
+    """Ensure simulate_move does not mutate the input board."""
+
+    rows = [
+        [GemType.RED, GemType.BLUE, GemType.GREEN],
+        [GemType.BLUE, GemType.RED, GemType.BLUE],
+        [GemType.YELLOW, GemType.GREEN, GemType.PURPLE],
+    ]
+    board = BoardState.from_rows(rows)
+    original_rows = board.rows
+    swap = ((1, 0), (1, 1))
+    supplier = make_supplier([GemType.BLUE, GemType.YELLOW, GemType.PURPLE])
+
+    simulate_move(board, swap, supplier)
+
+    assert board.rows is original_rows
+
+
+def test_simulate_move_deterministic_with_same_supplier() -> None:
+    """Same supplier sequence yields identical results."""
+
+    rows = [
+        [GemType.RED, GemType.BLUE, GemType.GREEN],
+        [GemType.BLUE, GemType.RED, GemType.BLUE],
+        [GemType.YELLOW, GemType.GREEN, GemType.PURPLE],
+    ]
+    board = BoardState.from_rows(rows)
+    swap = ((1, 0), (1, 1))
+
+    first = simulate_move(
+        board,
+        swap,
+        make_supplier([GemType.BLUE, GemType.YELLOW, GemType.PURPLE]),
+    )
+    second = simulate_move(
+        board,
+        swap,
+        make_supplier([GemType.BLUE, GemType.YELLOW, GemType.PURPLE]),
+    )
+
+    assert first.rows == second.rows
+    assert_no_empty_cells(first)
+    assert_no_matches(first)
+
+
+def test_simulate_move_varies_with_different_suppliers() -> None:
+    """Different supplier sequences yield different results."""
+
+    rows = [
+        [GemType.RED, GemType.BLUE, GemType.GREEN],
+        [GemType.BLUE, GemType.RED, GemType.BLUE],
+        [GemType.YELLOW, GemType.GREEN, GemType.PURPLE],
+    ]
+    board = BoardState.from_rows(rows)
+    swap = ((1, 0), (1, 1))
+
+    first = simulate_move(
+        board,
+        swap,
+        make_supplier([GemType.BLUE, GemType.YELLOW, GemType.PURPLE]),
+    )
+    second = simulate_move(
+        board,
+        swap,
+        make_supplier([GemType.GREEN, GemType.PURPLE, GemType.YELLOW]),
+    )
+
+    assert first.rows != second.rows
+    assert_no_empty_cells(first)
+    assert_no_matches(first)
+    assert_no_empty_cells(second)
+    assert_no_matches(second)
+
+
+def test_simulate_move_swap_uses_allowed_colors() -> None:
+    """Swap uses playable gem colors and produces a valid board."""
+
+    rows = [
+        [GemType.RED, GemType.BLUE, GemType.GREEN],
+        [GemType.BLUE, GemType.RED, GemType.BLUE],
+        [GemType.YELLOW, GemType.GREEN, GemType.PURPLE],
+    ]
+    board = BoardState.from_rows(rows)
+    swap = ((1, 0), (1, 1))
+    supplier = make_supplier([GemType.BLUE, GemType.YELLOW, GemType.PURPLE])
+    allowed = {
+        GemType.RED,
+        GemType.BLUE,
+        GemType.GREEN,
+        GemType.YELLOW,
+        GemType.PURPLE,
+    }
+
+    assert board.get(*swap[0]) in allowed
+    assert board.get(*swap[1]) in allowed
+
+    result = simulate_move(board, swap, supplier)
+
+    assert all(
+        gem in allowed
+        for row in result.rows
+        for gem in row
+    )
+    assert_no_empty_cells(result)
+    assert_no_matches(result)
