@@ -43,7 +43,7 @@ def _add_horizontal_matches(board: BoardState, matches: set[Coordinate]) -> None
             while run_end < board.width and board.get(run_end, y) == current:
                 run_end += 1
             run_length = run_end - x
-            if run_length >= MIN_MATCH_LENGTH:
+            if current.is_matchable and run_length >= MIN_MATCH_LENGTH:
                 for match_x in range(x, run_end):
                     matches.add((match_x, y))
             x = run_end
@@ -60,7 +60,7 @@ def _add_vertical_matches(board: BoardState, matches: set[Coordinate]) -> None:
             while run_end < board.height and board.get(x, run_end) == current:
                 run_end += 1
             run_length = run_end - y
-            if run_length >= MIN_MATCH_LENGTH:
+            if current.is_matchable and run_length >= MIN_MATCH_LENGTH:
                 for match_y in range(y, run_end):
                     matches.add((x, match_y))
             y = run_end
