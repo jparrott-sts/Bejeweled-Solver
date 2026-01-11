@@ -35,6 +35,9 @@ def refill_board(board: BoardState, gem_supplier: Callable[[], GemType]) -> Boar
     for x in range(width):
         for y in range(height - 1, -1, -1):
             if board.get(x, y) is GemType.EMPTY:
-                new_rows[y][x] = gem_supplier()
+                supplied = gem_supplier()
+                if supplied is GemType.EMPTY:
+                    raise ValueError("gem_supplier() returned GemType.EMPTY during refill.")
+                new_rows[y][x] = supplied
 
     return BoardState(rows=tuple(tuple(row) for row in new_rows))
