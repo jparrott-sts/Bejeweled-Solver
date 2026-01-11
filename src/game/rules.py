@@ -37,7 +37,7 @@ def remove_matches(board: BoardState, matches: set[Coordinate]) -> BoardState:
     """Return a new board with matched gems replaced by empty cells."""
 
     if not matches:
-        return board
+        return BoardState(rows=board.rows)
     rows = tuple(
         tuple(GemType.EMPTY if (x, y) in matches else board.get(x, y) for x in range(board.width))
         for y in range(board.height)
