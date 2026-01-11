@@ -1,11 +1,12 @@
-"""Legal move enumeration for the game layer.
+"""Legal move enumeration and simulation for the game layer.
 
 Purpose:
     Provide deterministic enumeration of adjacent, non-empty gem swaps.
 Inputs:
-    BoardState instances containing GemType values.
+    BoardState instances containing GemType values, plus productive swaps
+    and deterministic gem suppliers for simulation.
 Outputs:
-    Ordered lists of legal swap coordinate pairs.
+    Ordered lists of legal swap coordinate pairs and simulated BoardState results.
 Assumptions:
     BoardState coordinates are zero-indexed (x, y).
 Limitations:
@@ -14,10 +15,11 @@ Limitations:
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Callable, Iterable
 
 from game.board import BoardState
 from game.gem import GemType
+from game.cascade import resolve_cascades
 from game.rules import find_matches
 
 Coordinate = tuple[int, int]
@@ -63,6 +65,23 @@ def filter_productive_swaps(board: BoardState, swaps: list[Swap]) -> list[Swap]:
     """Return only the swaps that create at least one match."""
 
     return [swap for swap in swaps if is_productive_swap(board, swap)]
+
+
+def simulate_move(
+    board: BoardState,
+    swap: Swap,
+    gem_supplier: Callable[[], GemType],
+) -> BoardState:
+    """Return the fully resolved board after applying a productive swap.
+
+    Args:
+        board: The starting board state.
+        swap: A productive swap validated by the move filter.
+        gem_supplier: Deterministic supplier for refill gems.
+    """
+
+    swapped_board = _apply_swap(board, swap)
+    return resolve_cascades(swapped_board, gem_supplier)
 
 
 def _apply_swap(board: BoardState, swap: Swap) -> BoardState:
