@@ -197,3 +197,29 @@ def test_deterministic_supplier_produces_same_output() -> None:
     assert board.rows == original_rows
     assert_no_empty_cells(first)
     assert_no_matches(first)
+
+
+def test_empty_cells_without_matches_are_normalized() -> None:
+    """Empty cells trigger gravity and refill even without matches."""
+
+    rows = [
+        [GemType.EMPTY, GemType.RED],
+        [GemType.BLUE, GemType.GREEN],
+        [GemType.YELLOW, GemType.PURPLE],
+    ]
+    board = BoardState.from_rows(rows)
+    original_rows = board.rows
+    supplier, call_count = make_supplier([GemType.ORANGE])
+
+    resolved = resolve_cascades(board, supplier)
+
+    expected = (
+        (GemType.BLUE, GemType.RED),
+        (GemType.YELLOW, GemType.GREEN),
+        (GemType.ORANGE, GemType.PURPLE),
+    )
+    assert resolved.rows == expected
+    assert call_count["count"] == 1
+    assert board.rows == original_rows
+    assert_no_empty_cells(resolved)
+    assert_no_matches(resolved)
