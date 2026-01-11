@@ -25,7 +25,8 @@ def refill_board(board: BoardState, gem_supplier: Callable[[], GemType]) -> Boar
 
     Args:
         board: The board to refill.
-        gem_supplier: Callable that provides a GemType per empty cell.
+        gem_supplier: Callable that provides a non-empty GemType per empty cell.
+            Expected to return only playable gem colors (no GemType.EMPTY).
     """
 
     height = board.height

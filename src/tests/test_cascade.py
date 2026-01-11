@@ -53,7 +53,7 @@ def test_no_initial_matches_returns_identical_board() -> None:
 
     rows = [
         [GemType.RED, GemType.BLUE, GemType.GREEN],
-        [GemType.YELLOW, GemType.PURPLE, GemType.ORANGE],
+        [GemType.YELLOW, GemType.PURPLE, GemType.BLUE],
         [GemType.BLUE, GemType.GREEN, GemType.YELLOW],
     ]
     board = BoardState.from_rows(rows)
@@ -73,7 +73,7 @@ def test_empty_cells_without_matches_refill_once() -> None:
     rows = [
         [GemType.RED, GemType.EMPTY, GemType.BLUE],
         [GemType.GREEN, GemType.YELLOW, GemType.PURPLE],
-        [GemType.ORANGE, GemType.BLUE, GemType.GREEN],
+        [GemType.BLUE, GemType.BLUE, GemType.GREEN],
     ]
     board = BoardState.from_rows(rows)
     supplier, call_count = make_supplier([GemType.RED])
@@ -83,7 +83,7 @@ def test_empty_cells_without_matches_refill_once() -> None:
     expected = (
         (GemType.RED, GemType.YELLOW, GemType.BLUE),
         (GemType.GREEN, GemType.BLUE, GemType.PURPLE),
-        (GemType.ORANGE, GemType.RED, GemType.GREEN),
+        (GemType.BLUE, GemType.RED, GemType.GREEN),
     )
     assert resolved.rows == expected
     assert call_count["count"] == 1
@@ -97,7 +97,7 @@ def test_single_cascade_resolves_correctly() -> None:
     rows = [
         [GemType.RED, GemType.RED, GemType.RED],
         [GemType.BLUE, GemType.GREEN, GemType.YELLOW],
-        [GemType.PURPLE, GemType.ORANGE, GemType.BLUE],
+        [GemType.PURPLE, GemType.PURPLE, GemType.BLUE],
     ]
     board = BoardState.from_rows(rows)
     original_rows = board.rows
@@ -111,7 +111,7 @@ def test_single_cascade_resolves_correctly() -> None:
 
     expected = (
         (GemType.BLUE, GemType.GREEN, GemType.YELLOW),
-        (GemType.PURPLE, GemType.ORANGE, GemType.BLUE),
+        (GemType.PURPLE, GemType.PURPLE, GemType.BLUE),
         (GemType.RED, GemType.GREEN, GemType.PURPLE),
     )
     assert resolved.rows == expected
@@ -140,7 +140,7 @@ def test_multi_cascade_chain_resolves_fully() -> None:
         GemType.BLUE,
         GemType.YELLOW,
         GemType.PURPLE,
-        GemType.ORANGE,
+        GemType.YELLOW,
         GemType.RED,
         GemType.BLUE,
         GemType.GREEN,
@@ -149,7 +149,7 @@ def test_multi_cascade_chain_resolves_fully() -> None:
     resolved = resolve_cascades(board, supplier)
 
     expected = (
-        (GemType.BLUE, GemType.ORANGE, GemType.GREEN),
+        (GemType.BLUE, GemType.YELLOW, GemType.GREEN),
         (GemType.GREEN, GemType.PURPLE, GemType.BLUE),
         (GemType.RED, GemType.YELLOW, GemType.RED),
     )
@@ -175,7 +175,7 @@ def test_overlapping_matches_resolve_across_cascade() -> None:
         GemType.GREEN,
         GemType.YELLOW,
         GemType.PURPLE,
-        GemType.ORANGE,
+        GemType.PURPLE,
     ])
 
     resolved = resolve_cascades(board, supplier)
@@ -183,7 +183,7 @@ def test_overlapping_matches_resolve_across_cascade() -> None:
     expected = (
         (GemType.BLUE, GemType.PURPLE, GemType.BLUE),
         (GemType.BLUE, GemType.YELLOW, GemType.BLUE),
-        (GemType.RED, GemType.GREEN, GemType.ORANGE),
+        (GemType.RED, GemType.GREEN, GemType.PURPLE),
     )
     assert resolved.rows == expected
     assert call_count["count"] == 5
@@ -198,7 +198,7 @@ def test_detects_matches_before_gravity_and_refill() -> None:
     rows = [
         [GemType.EMPTY, GemType.BLUE, GemType.EMPTY],
         [GemType.RED, GemType.RED, GemType.RED],
-        [GemType.GREEN, GemType.PURPLE, GemType.ORANGE],
+        [GemType.GREEN, GemType.PURPLE, GemType.BLUE],
     ]
     board = BoardState.from_rows(rows)
     original_rows = board.rows
@@ -213,7 +213,7 @@ def test_detects_matches_before_gravity_and_refill() -> None:
     resolved = resolve_cascades(board, supplier)
 
     expected = (
-        (GemType.GREEN, GemType.BLUE, GemType.ORANGE),
+        (GemType.GREEN, GemType.BLUE, GemType.BLUE),
         (GemType.YELLOW, GemType.PURPLE, GemType.PURPLE),
         (GemType.RED, GemType.GREEN, GemType.BLUE),
     )
@@ -230,7 +230,7 @@ def test_deterministic_supplier_produces_same_output() -> None:
     rows = [
         [GemType.RED, GemType.RED, GemType.RED],
         [GemType.BLUE, GemType.GREEN, GemType.YELLOW],
-        [GemType.PURPLE, GemType.ORANGE, GemType.BLUE],
+        [GemType.PURPLE, GemType.PURPLE, GemType.BLUE],
     ]
     board = BoardState.from_rows(rows)
     original_rows = board.rows
@@ -264,14 +264,14 @@ def test_empty_cells_without_matches_trigger_refill() -> None:
     ]
     board = BoardState.from_rows(rows)
     original_rows = board.rows
-    supplier, call_count = make_supplier([GemType.ORANGE])
+    supplier, call_count = make_supplier([GemType.BLUE])
 
     resolved = resolve_cascades(board, supplier)
 
     expected = (
         (GemType.BLUE, GemType.RED),
         (GemType.YELLOW, GemType.GREEN),
-        (GemType.ORANGE, GemType.PURPLE),
+        (GemType.BLUE, GemType.PURPLE),
     )
     assert resolved.rows == expected
     assert call_count["count"] == 1
