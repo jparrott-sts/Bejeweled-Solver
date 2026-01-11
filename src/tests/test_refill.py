@@ -99,13 +99,13 @@ def test_mixed_columns_refill_only_empty_cells() -> None:
     supplier, call_count = make_supplier([
         GemType.YELLOW,
         GemType.PURPLE,
-        GemType.ORANGE,
+        GemType.BLUE,
     ])
 
     updated = refill_board(board, supplier)
 
     expected = (
-        (GemType.RED, GemType.ORANGE),
+        (GemType.RED, GemType.BLUE),
         (GemType.YELLOW, GemType.BLUE),
         (GemType.GREEN, GemType.PURPLE),
     )

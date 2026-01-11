@@ -21,7 +21,7 @@ def test_horizontal_match_detection() -> None:
     rows = [
         [GemType.RED, GemType.RED, GemType.RED, GemType.BLUE],
         [GemType.GREEN, GemType.YELLOW, GemType.BLUE, GemType.YELLOW],
-        [GemType.ORANGE, GemType.PURPLE, GemType.GREEN, GemType.BLUE],
+        [GemType.YELLOW, GemType.PURPLE, GemType.GREEN, GemType.BLUE],
     ]
     board = BoardState.from_rows(rows)
 
@@ -36,7 +36,7 @@ def test_vertical_match_detection() -> None:
     rows = [
         [GemType.GREEN, GemType.RED, GemType.BLUE],
         [GemType.GREEN, GemType.YELLOW, GemType.BLUE],
-        [GemType.GREEN, GemType.ORANGE, GemType.PURPLE],
+        [GemType.GREEN, GemType.BLUE, GemType.PURPLE],
     ]
     board = BoardState.from_rows(rows)
 
@@ -66,7 +66,7 @@ def test_empty_cells_do_not_match() -> None:
     rows = [
         [GemType.EMPTY, GemType.EMPTY, GemType.EMPTY],
         [GemType.RED, GemType.GREEN, GemType.BLUE],
-        [GemType.YELLOW, GemType.PURPLE, GemType.ORANGE],
+        [GemType.YELLOW, GemType.PURPLE, GemType.BLUE],
     ]
     board = BoardState.from_rows(rows)
 
@@ -100,7 +100,7 @@ def test_remove_vertical_match() -> None:
     rows = [
         [GemType.GREEN, GemType.RED],
         [GemType.GREEN, GemType.YELLOW],
-        [GemType.GREEN, GemType.ORANGE],
+        [GemType.GREEN, GemType.BLUE],
     ]
     board = BoardState.from_rows(rows)
     matches = {(0, 0), (0, 1), (0, 2)}
@@ -110,7 +110,7 @@ def test_remove_vertical_match() -> None:
     assert updated.rows == (
         (GemType.EMPTY, GemType.RED),
         (GemType.EMPTY, GemType.YELLOW),
-        (GemType.EMPTY, GemType.ORANGE),
+        (GemType.EMPTY, GemType.BLUE),
     )
     assert board.get(0, 1) is GemType.GREEN
 

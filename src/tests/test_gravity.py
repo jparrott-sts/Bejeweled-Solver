@@ -92,7 +92,7 @@ def test_mixed_columns_with_unaffected_column() -> None:
         [GemType.EMPTY, GemType.RED],
         [GemType.BLUE, GemType.GREEN],
         [GemType.EMPTY, GemType.YELLOW],
-        [GemType.PURPLE, GemType.ORANGE],
+        [GemType.PURPLE, GemType.BLUE],
     ]
     board = BoardState.from_rows(rows)
     original_rows = board.rows
@@ -103,7 +103,7 @@ def test_mixed_columns_with_unaffected_column() -> None:
         (GemType.BLUE, GemType.RED),
         (GemType.PURPLE, GemType.GREEN),
         (GemType.EMPTY, GemType.YELLOW),
-        (GemType.EMPTY, GemType.ORANGE),
+        (GemType.EMPTY, GemType.BLUE),
     )
     assert updated.rows == expected
     assert board.rows == original_rows

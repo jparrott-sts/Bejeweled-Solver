@@ -28,7 +28,8 @@ def resolve_cascades(board: BoardState, gem_supplier: Callable[[], GemType]) -> 
 
     Args:
         board: The starting board state.
-        gem_supplier: Callable that provides a GemType for refills.
+        gem_supplier: Callable that provides a non-empty GemType for refills.
+            Expected to return only playable gem colors (no GemType.EMPTY).
     """
 
     current = board

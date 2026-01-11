@@ -23,7 +23,6 @@ class GemType(Enum):
     GREEN = auto()
     YELLOW = auto()
     PURPLE = auto()
-    ORANGE = auto()
 
     @property
     def is_matchable(self) -> bool:

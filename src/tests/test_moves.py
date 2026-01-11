@@ -123,7 +123,7 @@ def test_filter_productive_swaps_excludes_non_matches() -> None:
     rows = [
         [GemType.RED, GemType.BLUE, GemType.GREEN],
         [GemType.GREEN, GemType.YELLOW, GemType.BLUE],
-        [GemType.RED, GemType.PURPLE, GemType.ORANGE],
+        [GemType.RED, GemType.PURPLE, GemType.GREEN],
     ]
     board = BoardState.from_rows(rows)
 
@@ -138,7 +138,7 @@ def test_filter_productive_swaps_skips_empty_cells() -> None:
     rows = [
         [GemType.RED, GemType.EMPTY, GemType.RED],
         [GemType.BLUE, GemType.GREEN, GemType.BLUE],
-        [GemType.YELLOW, GemType.PURPLE, GemType.ORANGE],
+        [GemType.YELLOW, GemType.PURPLE, GemType.GREEN],
     ]
     board = BoardState.from_rows(rows)
 
