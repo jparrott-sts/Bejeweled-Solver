@@ -41,7 +41,7 @@ def resolve_cascades(board: BoardState, gem_supplier: Callable[[], GemType]) -> 
                 for gem in row
             )
             if not has_empty:
-                return current
+                return BoardState(rows=current.rows)
             settled = apply_gravity(current)
             current = refill_board(settled, gem_supplier)
             continue

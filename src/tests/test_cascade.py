@@ -62,7 +62,6 @@ def test_no_initial_matches_returns_identical_board() -> None:
 
     resolved = resolve_cascades(board, supplier)
 
-    assert resolved == board
     assert resolved.rows == original_rows
     assert call_count["count"] == 0
     assert board.rows == original_rows

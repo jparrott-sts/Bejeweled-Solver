@@ -144,7 +144,9 @@ def test_remove_empty_match_set_returns_same_board() -> None:
         [GemType.YELLOW, GemType.GREEN],
     ]
     board = BoardState.from_rows(rows)
+    original_rows = board.rows
 
     updated = remove_matches(board, set())
 
-    assert updated == board
+    assert updated.rows == original_rows
+    assert board.rows == original_rows
